@@ -59,15 +59,17 @@
 #                  |   |  |  |                    |                   |
 #     docker run --rm -i -t -v $PWD:/home/sandbox titotest-centos-5.9 /bin/bash
 
+# Pip no longer supported here, can't install mock libraries:
+#titotest-centos-5.9
+
 distros='
-titotest-centos-5.9
-titotest-centos-6.4
-titotest-fedora-20
+titotest-centos-6
+titotest-fedora-21
 titotest-fedora-rawhide
 '
 
 python3_distros='
-titotest-fedora-20
+titotest-fedora-21
 titotest-fedora-rawhide
 '
 

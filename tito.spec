@@ -6,13 +6,18 @@
 %else
 %global use_python3 0
 %global use_python2 1
+%if 0%{?__python2:1}
 %global pythonbin %{__python2}
 %global python_sitelib %{python2_sitelib}
+%else
+%global pythonbin %{__python}
+%global python_sitelib %{python_sitelib}
 %endif
-%{!?python2_sitelib: %define python_sitelib %(%{pythonbin} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%endif
+%{!?python_sitelib: %define python_sitelib %(%{pythonbin} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: tito
-Version: 0.5.6
+Version: 0.6.4
 Release: 1%{?dist}
 Summary: A tool for managing rpm based git projects
 
@@ -28,12 +33,14 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 Requires: python3-setuptools
 Requires: python3-bugzilla
+Requires: python3-blessings
 Requires: rpm-python3
 %else
 BuildRequires: python-devel
 BuildRequires: python-setuptools
 Requires: python-setuptools
 Requires: python-bugzilla
+Requires: python-blessings
 Requires: rpm-python
 %endif
 BuildRequires: asciidoc
@@ -66,6 +73,10 @@ Requires: fedora-cert
 Requires: fedora-packager
 Requires: rpmdevtools
 Requires: yum-utils
+# Cheetah doesn't exist for Python 3, but it's what Mead uses.  We
+# install it and call via the command line instead of importing the
+# potentially incompatible code
+Requires: python-cheetah
 
 %description
 Tito is a tool for managing tarballs, rpms, and builds for projects using
@@ -73,7 +84,7 @@ git.
 
 %prep
 %setup -q -n tito-%{version}
-sed -i 1"s|#!/usr/bin/python|#!/usr/bin/python3|" bin/tito
+sed -i 1"s|#!.*|#!%{pythonbin}|" bin/tito
 
 %build
 %{pythonbin} setup.py build
@@ -100,15 +111,13 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %files
-%doc README.mkd AUTHORS COPYING
+%doc AUTHORS COPYING
 %doc doc/*
 %doc %{_mandir}/man5/titorc.5*
 %doc %{_mandir}/man5/tito.props.5*
 %doc %{_mandir}/man5/releasers.conf.5*
 %doc %{_mandir}/man8/tito.8*
 %{_bindir}/tito
-%{_bindir}/tar-fixup-stamp-comment.pl
-%{_bindir}/test-setup-specfile.pl
 %{_bindir}/generate-patches.pl
 %{_datadir}/bash-completion/completions/tito
 %dir %{python_sitelib}/tito
@@ -117,6 +126,58 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Jan 26 2016 Devan Goodwin <dgoodwin@rm-rf.ca> 0.6.4-1
+- Tagging with --use-version did not work with Mead projects.
+  (awood@redhat.com)
+- Check if self.old_cwd is defined before calling it in GitAnnex
+  (ericdhelms@gmail.com)
+- Ensure GitAnnexBuilder cleanup returns to proper directory
+  (ericdhelms@gmail.com)
+- Return only .spec basename; Fix dgoodwin/tito#196 (frostyx@email.cz)
+
+* Fri Jan 08 2016 Devan Goodwin <dgoodwin@rm-rf.ca> 0.6.3-1
+- Added ability to pass extra copr-cli build options to the copr releaser.
+  (twiest@redhat.com)
+- Fix changelog format function name (araszka@redhat.com)
+- fix mock link (glen@delfi.ee)
+- Set non-zero exit code when copr-cli fails (frostyx@email.cz)
+- Document possibility to upload SRPM directly to Copr (frostyx@email.cz)
+- Change asserted behavior after fe4c0bf (frostyx@email.cz)
+- Add possibility to upload SRPM directly to Copr (frostyx@email.cz)
+- Determine correct package manager DNF is now prefered on Fedora, but it is
+  not installed on EL6 or EL7 (frostyx@email.cz)
+- Ask user to run DNF instead of YUM (frostyx@email.cz)
+- Add tito tag --use-version argument to man page (dcleal@redhat.com)
+- Fix upstream/distribution builder failure to copy spec. (dgoodwin@redhat.com)
+- Allow a user specific Copr remote SRPM URL. (awood@redhat.com)
+
+* Fri Jul 24 2015 Devan Goodwin <dgoodwin@rm-rf.ca> 0.6.2-1
+- fixes(188) Run git-annex lock after building annexed file set.
+  (ericdhelms@gmail.com)
+
+* Mon Jul 20 2015 Devan Goodwin <dgoodwin@rm-rf.ca> 0.6.1-1
+- Fix rpmbuild_options array handling from builder args (dcleal@redhat.com)
+- Filter lines beginning with "Merge" from the changelog. (awood@redhat.com)
+- Provide ability to turn off colored output.  Fixes #182. (awood@redhat.com)
+
+* Fri Jun 12 2015 Devan Goodwin <dgoodwin@rm-rf.ca> 0.6.0-1
+- Add support for Red Hat Java MEAD builds. (awood@redhat.com)
+- Enable mkdocs and add documentation on Mead. (awood@redhat.com)
+- Add RHPKG/FEDPKG_USER to be passed to rh/fedpkg (elobatocs@gmail.com)
+- Replace old Perl script for munging RPM release number. (awood@redhat.com)
+- Give Tito some color! (awood@redhat.com)
+- Remove support for very old spacewalk user config file. (dgoodwin@redhat.com)
+- Allow builder arguments to be given multiple times. (awood@redhat.com)
+- Fix tarball timestamps from git archive with Python. (awood@redhat.com)
+- New - bash-completion facilities (john_florian@dart.biz)
+- clarify --offline option #141 (miroslav@suchy.cz)
+- substitute /releng for /.tito #161 (miroslav@suchy.cz)
+- Allow override of rpmbuild_options from builder arguments (dcleal@redhat.com)
+- Fixes macro initialisation on EL6, F22+ (dcleal@redhat.com)
+- Help new packagers find tools related to tito (craig@2ndquadrant.com)
+- no need to gzip man pages, rpmbuild do that automatically (miroslav@suchy.cz)
+- use python3 on Fedora 22 (miroslav@suchy.cz)
+
 * Tue Dec 23 2014 Devan Goodwin <dgoodwin@rm-rf.ca> 0.5.6-1
 - Require new srpm_disttag for rsync/yum releasers. (dgoodwin@rm-rf.ca)
 - Drop more test only requirements from spec. (dgoodwin@redhat.com)

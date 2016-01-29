@@ -14,9 +14,8 @@
 
 import os
 import tempfile
-from os.path import join
 from tito.builder import Builder
-from tito.common import *
+from tito.common import run_command
 from tito.compat import RawConfigParser
 from functional.fixture import TitoGitTestFixture, tito
 
@@ -35,7 +34,7 @@ class BuilderTests(TitoGitTestFixture):
     def test_scl_from_options(self):
         self.create_project(PKG_NAME)
         builder = Builder(PKG_NAME, None, self.output_dir,
-            self.config, {}, {'scl': 'ruby193'}, **{'offline': True})
+            self.config, {}, {'scl': ['ruby193']}, **{'offline': True})
         self.assertEqual('ruby193', builder.scl)
 
     def test_scl_from_kwargs(self):
@@ -43,6 +42,25 @@ class BuilderTests(TitoGitTestFixture):
         builder = Builder(PKG_NAME, None, self.output_dir,
             self.config, {}, {}, **{'offline': True, 'scl': 'ruby193'})
         self.assertEqual('ruby193', builder.scl)
+
+    def test_rpmbuild_options_from_options(self):
+        self.create_project(PKG_NAME)
+        builder = Builder(PKG_NAME, None, self.output_dir,
+            self.config, {}, {'rpmbuild_options': ['--define "foo bar"',
+            '--define "bar baz"']}, **{'offline': True})
+        self.assertEqual('--define "foo bar" --define "bar baz"', builder.rpmbuild_options)
+
+    def test_rpmbuild_options_from_kwargs(self):
+        self.create_project(PKG_NAME)
+        builder = Builder(PKG_NAME, None, self.output_dir,
+            self.config, {}, {}, **{'offline': True, 'rpmbuild_options': '--define "foo bar"'})
+        self.assertEqual('--define "foo bar"', builder.rpmbuild_options)
+
+    def test_rpmbuild_options_missing(self):
+        self.create_project(PKG_NAME)
+        builder = Builder(PKG_NAME, None, self.output_dir,
+            self.config, {}, {}, **{'offline': True})
+        self.assertEqual('', builder.rpmbuild_options)
 
     def test_untagged_test_version(self):
         self.create_project(PKG_NAME, tag=False)

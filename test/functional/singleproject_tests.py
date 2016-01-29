@@ -13,12 +13,12 @@
 # in this software or its documentation.
 
 import os
-from tito.common import *
-from tito.builder import *
+from tito.builder import Builder, UpstreamBuilder
+from tito.common import tag_exists_locally, check_tag_exists
 from tito.release import Releaser
 from tito.compat import getoutput
 from functional.fixture import TitoGitTestFixture, tito
-from ConfigParser import RawConfigParser
+from tito.compat import RawConfigParser
 
 PKG_NAME = "titotestpkg"
 
@@ -44,10 +44,10 @@ class SingleProjectTests(TitoGitTestFixture):
     def test_init_worked(self):
         # Not actually running init here, just making sure it worked when
         # run during setup.
-        self.assertTrue(os.path.exists(os.path.join(self.repo_dir, "rel-eng")))
-        self.assertTrue(os.path.exists(os.path.join(self.repo_dir, "rel-eng",
+        self.assertTrue(os.path.exists(os.path.join(self.repo_dir, ".tito")))
+        self.assertTrue(os.path.exists(os.path.join(self.repo_dir, ".tito",
             "packages")))
-        self.assertTrue(os.path.exists(os.path.join(self.repo_dir, "rel-eng",
+        self.assertTrue(os.path.exists(os.path.join(self.repo_dir, ".tito",
             "tito.props")))
 
     def test_initial_tag(self):

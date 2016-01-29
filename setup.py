@@ -21,7 +21,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="tito",
-    version='0.5.6',
+    version='0.6.4',
     description='A tool for managing rpm based git projects.',
     author='Devan Goodwin',
     author_email='dgoodwin@rm-rf.ca',
@@ -37,8 +37,6 @@ setup(
     # non-python scripts go here
     scripts=[
         'bin/tito',
-        'bin/tar-fixup-stamp-comment.pl',
-        'bin/test-setup-specfile.pl',
         'bin/generate-patches.pl'
     ],
 

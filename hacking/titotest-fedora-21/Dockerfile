@@ -1,5 +1,5 @@
 # https://index.docker.io/_/fedora/
-FROM fedora:rawhide
+FROM fedora:21
 
 # http://jumanjiman.github.io/
 MAINTAINER Paul Morgan <jumanjiman@gmail.com>
